@@ -55,7 +55,7 @@
              (vecto:set-line-width 40)
              (let ((column-top (ceiling (+ 30 (if (or (null value) (zerop value))
                                                 3
-                                                (* (/ 170 max-value) value))))))
+                                                (ceiling (normalize value max-value 170)))))))
                (vecto:line-to x column-top)
                (vecto:set-font font +titles-font-size+)
                (vecto:draw-centered-string x
@@ -68,44 +68,43 @@
 
 @export
 (defun draw-graph (save-to data units)
-  (let ((points-count (length data))
-        (max-value (reduce #'max data :key #'label-value)))
-    (flet ((normalize (value)
-             (ceiling (* (/ (- (* 30 points-count)
-                               20)
-                            max-value)
-                         value))))
-      (vecto:with-canvas (:width (* +graph-step+ (1+ points-count))
-                          :height (+ 30 (* 30 points-count)))
-        (vecto:with-graphics-state
-          (vecto:set-line-join :round)
-          (vecto:set-line-cap :round)
-          (vecto:set-line-width 4)
-          (vecto:set-rgb-stroke 0.2 0.2 0.2)
-          (vecto:move-to +graph-step+ (+ 45 (normalize (label-value (first data)))))
+  (let* ((points-count (length data))
+         (max-value (reduce #'max data :key #'label-value))
+         (scale-size (- (* 30 points-count) 20)))
+    (vecto:with-canvas (:width (* +graph-step+ (1+ points-count))
+                        :height (+ 30 (* 30 points-count)))
+      (vecto:with-graphics-state
+        (vecto:set-line-join :round)
+        (vecto:set-line-cap :round)
+        (vecto:set-line-width 4)
+        (vecto:set-rgb-stroke 0.2 0.2 0.2)
+        (vecto:move-to +graph-step+ (+ 45
+                                       (ceiling (to-log-scale (label-value (first data))
+                                                              max-value
+                                                              scale-size))))
+        (iter
+          (for (name value) in (rest data))
+          (for y next (+ 45 (ceiling (to-log-scale value max-value scale-size))))
+          (for x upfrom (* 2 +graph-step+) by +graph-step+)
+          (after-each (vecto:line-to x y)))
+        (vecto:stroke))
+      (vecto:with-graphics-state
+        (vecto:set-line-width 1)
+        (vecto:set-rgb-stroke 0.2 0.2 0.2)
+        (let ((font (vecto:get-font "res/times.ttf")))
           (iter
-            (for (name value) in (rest data))
-            (for y next (+ 45 (normalize value)))
-            (for x upfrom (* 2 +graph-step+) by +graph-step+)
-            (after-each (vecto:line-to x y)))
-          (vecto:stroke))
-        (vecto:with-graphics-state
-          (vecto:set-line-width 1)
-          (vecto:set-rgb-stroke 0.2 0.2 0.2)
-          (let ((font (vecto:get-font "res/times.ttf")))
-            (iter
-              (for (name value) in data)
-              (for y next (+ 45 (normalize value)))
-              (for x upfrom 60 by +graph-step+)
-              (after-each
-               (vecto:set-font font 14)
-               (vecto:draw-centered-string x 30 name)
-               (vecto:set-font font 15)
-               (vecto:draw-centered-string x 10
-                                           (if (zerop value)
-                                             "N/A"
-                                             (format nil "~D ~A" value units)))
-               (vecto:move-to x 45)
-               (vecto:line-to x y)
-               (vecto:stroke)))))
-        (vecto:save-png save-to)))))
+            (for (name value) in data)
+            (for y next (+ 45 (ceiling (to-log-scale value max-value scale-size))))
+            (for x upfrom 60 by +graph-step+)
+            (after-each
+             (vecto:set-font font 14)
+             (vecto:draw-centered-string x 30 name)
+             (vecto:set-font font 15)
+             (vecto:draw-centered-string x 10
+                                         (if (zerop value)
+                                           "N/A"
+                                           (format nil "~D ~A" value units)))
+             (vecto:move-to x 45)
+             (vecto:line-to x y)
+             (vecto:stroke)))))
+      (vecto:save-png save-to))))
