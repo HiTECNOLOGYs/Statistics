@@ -42,10 +42,10 @@
           (for x upfrom titles-column-size by 65)
           (for i from 1)
           (for max-value next
-               (let ((max-value (reduce #'max data :key #'label-value)))
-                 (if (or (null max-value) (zerop max-value))
+               (let ((result (reduce #'max data :key #'label-value)))
+                 (if (or (null result) (zerop result))
                    1
-                   value)))
+                   result)))
           (after-each
            (vecto:with-graphics-state
              (vecto:set-font font 15)
@@ -53,13 +53,15 @@
              (vecto:move-to x 30)
              (vecto:set-rgb-stroke 0.2 0.2 0.2)
              (vecto:set-line-width 40)
-             (let ((column-top (ceiling (+ 30 (if (or (null value) (zerop value))
-                                                3
-                                                (ceiling (normalize value max-value 170)))))))
-               (vecto:line-to x column-top)
+             (let* ((log-value (and (not (null value))
+                                    (to-log-scale value max-value 170)))
+                    (y (if (zerop log-value)
+                         2
+                         log-value)))
+               (vecto:line-to x (+ 30 y))
                (vecto:set-font font +titles-font-size+)
                (vecto:draw-centered-string x
-                                           (+ 10 column-top)
+                                           (+ 40 y)
                                            (if (null value)
                                              "N/A"
                                              (format nil "~D ~A" value unit))))
