@@ -17,8 +17,8 @@
   (let ((matches (nth-value 1 (cl-ppcre:scan-to-strings +date-regex+ value))))
     (if (null matches)
       value
-      (list :day (parse-integer (aref matches 0))
-            :month (parse-integer (aref matches 1))
+      (list :day (parse-integer (aref matches 1))
+            :month (parse-integer (aref matches 0))
             :year (parse-integer (aref matches 2))
             :hour (parse-integer (aref matches 3))
             :minute (parse-integer (aref matches 4))
