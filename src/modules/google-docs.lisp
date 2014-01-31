@@ -24,7 +24,7 @@
             :minute (parse-integer (aref matches 4))
             :second (parse-integer (aref matches 5))))))
 
-(defun make-record (columns &rest columns)
+(defun make-record (headers &rest columns)
   "Makes record out of columns."
   (iter
     (for header in headers)
