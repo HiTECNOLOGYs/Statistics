@@ -1,5 +1,10 @@
-(cl-annot:enable-annot-syntax)
-(in-package :statistics)
+(defpackage :statistics.google-docs
+  (:use :cl
+        :alexandria
+        :statistics)
+  (:export :parse-tsv))
+
+(in-package :statistics.google-docs)
 
 (define-constant +tsv-regex+ "([^\\t]+)(?:\\t([^\\t][^\\n]+))?\\n"
   :test #'string=)
@@ -31,7 +36,6 @@
     (for column in columns)
     (nconcing (list header column))))
 
-@export
 (defun parse-tsv (data columns-ids)
   "Parses tab separated values."
   (let (result columns-headers)

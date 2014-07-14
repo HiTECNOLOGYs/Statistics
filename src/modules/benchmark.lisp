@@ -1,7 +1,11 @@
-(cl-annot:enable-annot-syntax)
-(in-package :statistics)
+(defpackage :statistics.benchmark
+  (:use :cl
+        :statistics)
+  (:export :evaluation-time
+           :function-average-run-time))
 
-@export
+(in-package :statistics.benchmark)
+
 (defmacro evaluation-time (form)
   "Returns time needed to evaluate a form."
   `(let ((start-time (get-internal-real-time)))
@@ -9,9 +13,9 @@
      (/ (- (get-internal-real-time) start-time)
         internal-time-units-per-second)))
 
-@export
-(defun calculate-function-average-run-time (function number-of-runs &rest arguments)
-  "Runs functon given number of times and then find an average time needed to run it once."
+(defun function-average-run-time (function number-of-runs &rest arguments)
+  "Runs functon given number of times and then finds average time needed to run
+it once."
   (/ (evaluation-time
        (dotimes (i number-of-runs)
          (apply #'funcall function arguments)))

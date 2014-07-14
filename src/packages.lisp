@@ -1,4 +1,7 @@
 (defpackage :statistics
   (:use :cl
         :alexandria
-        :iterate))
+        :iterate)
+  (:export :value-to-scale
+           :draw-diagram
+           :draw-graph))
